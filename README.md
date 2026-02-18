@@ -18,12 +18,6 @@ The project is designed with a decoupled architecture:
 * **Stress Testing Tool:** Includes a custom C++ stress tester to simulate high CPU/RAM load for validation.
 
 ---
-
-## 🛠️ Architecture
-The system uses a producer-consumer model via a shared log file:
-
-```mermaid
-graph LR
 ⚡ Quick Start
 Prerequisites
 C++ Compiler: g++ (MinGW for Windows)
