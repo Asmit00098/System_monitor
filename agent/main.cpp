@@ -3,23 +3,30 @@
 #include <thread>
 #include <chrono>
 
-// Link the library for MinGW/G++
-#pragma comment(lib, "Psapi.lib") 
+#include "MetricsCollector.hpp"
 
-#include "WindowsCollector.cpp"
+// --- THE PLATFORM SWITCH ---
+#ifdef _WIN32
+    #pragma comment(lib, "Psapi.lib") 
+    #include "WindowsCollector.cpp"
+#elif __linux__
+    #include "LinuxCollector.cpp"
+#endif
 
 int main() {
-    MetricsCollector* collector = new WindowsCollector();
+    // Factory-style instantiation based on the OS
+    MetricsCollector* collector;
     
-    // Open in truncation mode to clear old logs on startup
+    #ifdef _WIN32
+        collector = new WindowsCollector();
+        std::cout << "--- WINDOWS AGENT STARTED ---" << std::endl;
+    #elif __linux__
+        collector = new LinuxCollector();
+        std::cout << "--- LINUX AGENT STARTED ---" << std::endl;
+    #endif
+    
     std::ofstream outFile("system_logs.csv", std::ios::trunc);
-    
-    // Write the NEW header
     outFile << "Timestamp,CPU_User,CPU_Kernel,CPU_Idle,RAM_Used_MB,RAM_Total_MB,Process_Count,Thread_Count" << std::endl;
-
-    std::cout << "--- REAL SYSTEM MONITOR AGENT ---" << std::endl;
-    std::cout << "Collecting global system metrics..." << std::endl;
-    std::cout << "Press Ctrl+C to stop." << std::endl;
 
     while (true) {
         SystemMetrics m = collector->getMetrics();
@@ -31,7 +38,7 @@ int main() {
                 << m.memoryUsedMB << ","
                 << m.memoryTotalMB << ","
                 << m.processCount << "," 
-                << m.threadCount << std::endl; // Flush to disk
+                << m.threadCount << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
